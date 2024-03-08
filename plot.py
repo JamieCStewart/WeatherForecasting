@@ -43,10 +43,13 @@ for i, ax in enumerate(axs.flatten()):
 # Adjust layout to prevent overlap
 plt.tight_layout()
 
+# Save output
+plt.savefig('rainfall_plots.png')
+
 # Show the plot
 plt.show()
 
-plt.savefig('rainfall_plots.png')
+
 
 # Close the datasets
 ds1.close()
