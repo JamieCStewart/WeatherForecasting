@@ -15,12 +15,15 @@ for i, ax in enumerate(axs.flatten()):
     if i < 3:
         data_slice = ds1.isel(time=i)
         day_label = f'Day {i+1}'
+        resolution_label = '1km'
     elif i < 6:
         data_slice = ds2.isel(time=i-3)
         day_label = f'Day {i-2}'
+        resolution_label = '5km'
     else:
         data_slice = ds3.isel(time=i-6)
         day_label = f'Day {i-5}'
+        resolution_label = '60km'
 
     # Get longitude and latitude values
     lon = data_slice['longitude'].values
@@ -34,8 +37,8 @@ for i, ax in enumerate(axs.flatten()):
     # Add a colorbar
     cbar = plt.colorbar(img, ax=ax, label='Rainfall (mm)')
 
-    # Set plot title
-    ax.set_title(f'Rainfall on {day_label}')
+    # Set plot title with resolution information
+    ax.set_title(f'Rainfall on {day_label} ({resolution_label} res)')
 
 # Adjust layout to prevent overlap
 plt.tight_layout()
@@ -43,14 +46,7 @@ plt.tight_layout()
 # Show the plot
 plt.show()
 
-# Close the datasets
-ds1.close()
-ds2.close()
-ds3.close()
-
-
-# Show the plot
-plt.show()
+plt.savefig('rainfall_plots.png')
 
 # Close the datasets
 ds1.close()
