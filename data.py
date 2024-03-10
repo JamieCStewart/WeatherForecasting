@@ -1,5 +1,6 @@
 import xarray as xr
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten, Reshape, Masking
@@ -69,14 +70,14 @@ for file in X_dataset_paths:
     with xr.open_dataset(file) as ds:
         # Extract the rainfall data for all time steps
         rainfall_data = ds['rainfall'].values
-        print(rainfall_data.shape)
+        #print(rainfall_data.shape)
 
         # Append the data for all time steps to the list
         rainfall_instances.append(rainfall_data)
 
 # Concatenate the list of rainfall instances along the first axis
 X_train = np.concatenate(rainfall_instances, axis=0)
-print(X_train.shape)
+#print(X_train.shape)
 
 
 # Initialize an empty list to store all rainfall_numpy instances
@@ -87,14 +88,14 @@ for file in y_dataset_paths:
     with xr.open_dataset(file) as ds:
         # Extract the rainfall data for all time steps
         rainfall_data = ds['rainfall'].values
-        print(rainfall_data.shape)
+        #print(rainfall_data.shape)
 
         # Append the data for all time steps to the list
         rainfall_instances.append(rainfall_data)
 
 # Concatenate the list of rainfall instances along the first axis
 y_train = np.concatenate(rainfall_instances, axis=0)
-print(y_train.shape)
+#print(y_train.shape)
 
 
 ### MODEL TIME
@@ -107,8 +108,8 @@ print(y_train.shape)
 X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
 
 # Normalize the data (optional but often beneficial)
-X_train_normalized = X_train / 255.0  # Adjust as needed
-X_test_normalized = X_test / 255.0    # Adjust as needed
+X_train_normalized = X_train  # Adjust as needed
+X_test_normalized = X_test    # Adjust as needed
 
 # Create masks for NaN values in X_train and y_train for the entire dataset
 nan_mask_X_train = np.isnan(X_train_normalized)
@@ -151,12 +152,15 @@ predictions_reshaped = predictions.reshape((predictions.shape[0], y_test.shape[1
 new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20201201-20201231.nc'
 new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20201201-20201231.nc' 
 
+
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:
-    X_new_60 = ds_new_60['rainfall'].values
+    data_slice = ds_new_60.isel(time=15)
+    X_new_60 = data_slice['rainfall'].values
     nan_mask_X_new_60 = np.isnan(X_new_60)
     X_new_60_masked = np.where(nan_mask_X_new_60, 0, X_new_60)
     X_new_60_flat = X_new_60_masked.reshape((1, -1))  # Reshape to match the input shape of the model
+    print(X_new_60_flat.shape) 
 
 # Make predictions on the new_60 data
 predictions_new_60 = model.predict(X_new_60_flat)
@@ -166,20 +170,50 @@ predictions_new_60_reshaped = predictions_new_60.reshape((predictions_new_60.sha
 
 # Load and preprocess the corresponding new_12 data for comparison
 with xr.open_dataset(new_12) as ds_new_12:
-    y_new_12 = ds_new_12['rainfall'].values
+    data_slice = ds_new_12.isel(time=15)
+    y_new_12 = data_slice['rainfall'].values
 
-# Plot the predictions against the true new_12 data
-plt.figure(figsize=(12, 6))
+nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
+print(f"Number of NaN values in predicted 12km: {nan_count}")
 
-plt.subplot(1, 2, 1)
-plt.imshow(predictions_new_60_reshaped[0], cmap='viridis', origin='lower', aspect='auto')
-plt.title('Predictions (new_60)')
+nan_count = np.sum(np.isnan(y_new_12))
+print(f"Number of NaN values in true value: {nan_count}")
+
+# Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
+plt.figure(figsize=(18, 6))
+
+X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
+# Find the maximum value across all three data arrays
+max_value = np.max([np.nanmax(X_new_60_flat), np.nanmax(predictions_new_60_reshaped), np.nanmax(y_new_12)])
+
+# Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
+plt.figure(figsize=(18, 6))
+
+X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
+
+# Plot original 60km data
+plt.subplot(1, 3, 1)
+cmap = plt.cm.Blues  # Choose your colormap
+cmap.set_bad(color=cmap(0.0))
+plt.imshow(X_new_60_flat[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.title('Original 60km')
 plt.colorbar()
 
-plt.subplot(1, 2, 2)
-plt.imshow(y_new_12, cmap='viridis', origin='lower', aspect='auto')
-plt.title('True new_12')
+# Plot predicted data
+plt.subplot(1, 3, 2)
+plt.imshow(predictions_new_60_reshaped[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.title('Predicted 12km')
+plt.colorbar()
+
+# Plot true data
+plt.subplot(1, 3, 3)
+plt.imshow(y_new_12, cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.title('True 12km')
 plt.colorbar()
 
 plt.tight_layout()
 plt.show()
+
+
+##### Masking not working correctly --> Prediction outputs 0s insstead of NaNs 
+
