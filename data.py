@@ -56,8 +56,26 @@ y_dataset_paths = [
     'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20221201-20221231.nc'
 ]
 
+
 with xr.open_dataset('Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210101-20210131.nc') as ds:
+    # 390 values, 23 horizontal by 17 vertical 
     data_slice = ds.isel(time=0)
     lon = data_slice['longitude'].values
     lat = data_slice['latitude'].values
     print(data_slice['rainfall'])
+
+
+with xr.open_dataset('Data/5km/Rainfall/rainfall_hadukgrid_uk_5km_day_20210101-20210131.nc') as ds:
+    # 52200 values, 290 horizontal by 180 vertical 
+    data_slice = ds.isel(time=0)
+    lon = data_slice['longitude'].values
+    lat = data_slice['latitude'].values
+    print(data_slice['rainfall'])
+
+# FIGURE OUT WHY THESE ARENT INTEGERS!!! 
+##   60km grid points not a subset of 5km??????
+### Linear interpolation hard to get to work if not lined up 
+
+print(52200/390)
+print(290 / 23)
+print(180 / 17)
