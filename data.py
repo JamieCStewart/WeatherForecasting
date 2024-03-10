@@ -62,20 +62,67 @@ with xr.open_dataset('Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210101
     data_slice = ds.isel(time=0)
     lon = data_slice['longitude'].values
     lat = data_slice['latitude'].values
-    print(data_slice['rainfall'])
+    num_values = data_slice['rainfall'].size
+    print(f"The number of data values in data_slice['rainfall'] is: {num_values}")
+    # Count the number of NaN values
+    num_nan_values = np.isnan(data_slice['rainfall']).sum()
+    num_nan_values = num_nan_values.item()
+    print(f"The number of NaN values in data_slice['rainfall'] is: {num_nan_values}")
+    # Convert the DataArray to a NumPy array
+    rainfall_numpy = data_slice['rainfall'].values
+    # Now you can use rainfall_numpy in machine learning algorithms
+    # For example, if using scikit-learn, you might reshape the array for compatibility
+    rainfall_flattened = rainfall_numpy.flatten()
+    print(rainfall_numpy.shape)
+    # 23 x values vs 17 y values 
+    # Work out dimensions for X train
 
+
+
+
+
+
+
+with xr.open_dataset('Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210101-20210131.nc') as ds:
+    # 390 values, 23 horizontal by 17 vertical 
+    data_slice = ds.isel(time=0)
+    lon = data_slice['longitude'].values
+    lat = data_slice['latitude'].values
+    num_values = data_slice['rainfall'].size
+    #print(f"The number of data values in data_slice['rainfall'] is: {num_values}")
+    # Count the number of NaN values
+    num_nan_values = np.isnan(data_slice['rainfall']).sum()
+    num_nan_values = num_nan_values.item()
+    #print(f"The number of NaN values in data_slice['rainfall'] is: {num_nan_values}")
 
 with xr.open_dataset('Data/5km/Rainfall/rainfall_hadukgrid_uk_5km_day_20210101-20210131.nc') as ds:
     # 52200 values, 290 horizontal by 180 vertical 
     data_slice = ds.isel(time=0)
     lon = data_slice['longitude'].values
     lat = data_slice['latitude'].values
-    print(data_slice['rainfall'])
+    num_values = data_slice['rainfall'].size
+    #print(f"The number of data values in data_slice['rainfall'] is: {num_values}")
+    # Count the number of NaN values
+    num_nan_values = np.isnan(data_slice['rainfall']).sum()
+    num_nan_values = num_nan_values.item()
+    #print(f"The number of NaN values in data_slice['rainfall'] is: {num_nan_values}")
+
+with xr.open_dataset('Data/1km/Rainfall/rainfall_hadukgrid_uk_1km_day_20210101-20210131.nc') as ds:
+    # 52200 values, 290 horizontal by 180 vertical 
+    data_slice = ds.isel(time=0)
+    lon = data_slice['longitude'].values
+    lat = data_slice['latitude'].values
+    num_values = data_slice['rainfall'].size
+    #print(f"The number of data values in data_slice['rainfall'] is: {num_values}")
+    # Count the number of NaN values
+    num_nan_values = np.isnan(data_slice['rainfall']).sum()
+    num_nan_values = num_nan_values.item()
+    #print(f"The number of NaN values in data_slice['rainfall'] is: {num_nan_values}")
 
 # FIGURE OUT WHY THESE ARENT INTEGERS!!! 
 ##   60km grid points not a subset of 5km??????
 ### Linear interpolation hard to get to work if not lined up 
 
-print(52200/390)
-print(290 / 23)
-print(180 / 17)
+#print(52200/390)
+#print(290 / 23)
+#print(180 / 17)
