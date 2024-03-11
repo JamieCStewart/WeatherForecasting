@@ -134,7 +134,7 @@ model.add(Dense(np.prod(y_train.shape[1:]), activation='linear'))  # Adjust the 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
 
 # Train the model with the masked data
-model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=100, batch_size=32, validation_split=0.1)
+model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=1, batch_size=32, validation_split=0.1)
 
 # Evaluate the model on the test set
 test_loss = model.evaluate(X_test_flat, y_test.reshape((y_test.shape[0], -1)))
@@ -155,7 +155,7 @@ new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20201201-20201231.nc
 
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:
-    data_slice = ds_new_60.isel(time=15)
+    data_slice = ds_new_60.isel(time=0)
     X_new_60 = data_slice['rainfall'].values
     nan_mask_X_new_60 = np.isnan(X_new_60)
     X_new_60_masked = np.where(nan_mask_X_new_60, 0, X_new_60)
@@ -170,7 +170,7 @@ predictions_new_60_reshaped = predictions_new_60.reshape((predictions_new_60.sha
 
 # Load and preprocess the corresponding new_12 data for comparison
 with xr.open_dataset(new_12) as ds_new_12:
-    data_slice = ds_new_12.isel(time=15)
+    data_slice = ds_new_12.isel(time=0)
     y_new_12 = data_slice['rainfall'].values
 
 nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
@@ -191,8 +191,14 @@ plt.figure(figsize=(18, 6))
 
 X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
 
+
+
+#### TEST Linear Interpolation  NOT WORKING
+
+linear_interp_predictions = ds_new_60.interp_like(ds_new_12, method='linear')['rainfall'].values
+
 # Plot original 60km data
-plt.subplot(1, 3, 1)
+plt.subplot(1, 4, 1)
 cmap = plt.cm.Blues  # Choose your colormap
 cmap.set_bad(color=cmap(0.0))
 plt.imshow(X_new_60_flat[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
@@ -200,20 +206,29 @@ plt.title('Original 60km')
 plt.colorbar()
 
 # Plot predicted data
-plt.subplot(1, 3, 2)
+plt.subplot(1, 4, 2)
 plt.imshow(predictions_new_60_reshaped[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
 plt.title('Predicted 12km')
 plt.colorbar()
 
 # Plot true data
-plt.subplot(1, 3, 3)
+plt.subplot(1, 4, 3)
 plt.imshow(y_new_12, cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
 plt.title('True 12km')
+plt.colorbar()
+
+# Plot linear interpolation predictions
+plt.subplot(1, 4, 4)
+plt.imshow(linear_interp_predictions[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.title('Linear Interpolation 12km')
 plt.colorbar()
 
 plt.tight_layout()
 plt.show()
 
-
+print(X_new_60_flat[0].shape)
+print(predictions_new_60_reshaped[0].shape)
+print(linear_interp_predictions[0].shape)
+print(y_new_12.shape)
 ##### Masking not working correctly --> Prediction outputs 0s insstead of NaNs 
 
