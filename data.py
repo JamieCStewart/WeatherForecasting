@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Reshape, Masking
+from tensorflow.keras.layers import Dense, Flatten, Reshape, Masking, Lambda
 from tensorflow.keras.optimizers import Adam
+import tensorflow as tf
 
 
 # Assuming you have a list of dataset paths
@@ -134,7 +135,7 @@ model.add(Dense(np.prod(y_train.shape[1:]), activation='linear'))  # Adjust the 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
 
 # Train the model with the masked data
-model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=1, batch_size=32, validation_split=0.1)
+model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=100, batch_size=32, validation_split=0.1)
 
 # Evaluate the model on the test set
 test_loss = model.evaluate(X_test_flat, y_test.reshape((y_test.shape[0], -1)))
@@ -152,10 +153,11 @@ predictions_reshaped = predictions.reshape((predictions.shape[0], y_test.shape[1
 new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20201201-20201231.nc'
 new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20201201-20201231.nc' 
 
+time_for_image = 20
 
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:
-    data_slice = ds_new_60.isel(time=0)
+    data_slice = ds_new_60.isel(time=time_for_image)
     X_new_60 = data_slice['rainfall'].values
     nan_mask_X_new_60 = np.isnan(X_new_60)
     X_new_60_masked = np.where(nan_mask_X_new_60, 0, X_new_60)
@@ -170,7 +172,7 @@ predictions_new_60_reshaped = predictions_new_60.reshape((predictions_new_60.sha
 
 # Load and preprocess the corresponding new_12 data for comparison
 with xr.open_dataset(new_12) as ds_new_12:
-    data_slice = ds_new_12.isel(time=0)
+    data_slice = ds_new_12.isel(time=time_for_image)
     y_new_12 = data_slice['rainfall'].values
 
 nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
@@ -191,6 +193,8 @@ plt.figure(figsize=(18, 6))
 
 X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
 
+# Apply the NaN mask to predictions to match the pattern in y_train
+predictions_new_60_reshaped[0] = np.where(nan_mask_y_train, np.nan, predictions_reshaped[0])
 
 
 #### TEST Linear Interpolation  NOT WORKING
