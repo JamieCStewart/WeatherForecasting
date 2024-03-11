@@ -1,6 +1,7 @@
 import calendar 
 import xarray as xr 
 import numpy as np 
+from sklearn.model_selection import train_test_split
 
 def generate_rainfall_paths(start_year, end_year, low_res, high_res):
     months = [f"{i:02d}" for i in range(1, 13)]  # Generate month strings with leading zeros
@@ -40,3 +41,17 @@ def load_data(X_dataset_paths, y_dataset_paths):
     y = np.concatenate(rainfall_instances, axis=0)
 
     return X, y 
+
+
+def test_train_split(X, y, ratio, random_state=None):
+    if random_state == None:
+        random_state = random.randint(1, 1000)
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=ratio, 
+        random_state=random_state)
+
+    return X_train, X_test, y_train, y_test 
+
+
+def create_mask():
+    print("Stuff to do")

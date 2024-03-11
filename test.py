@@ -1,147 +1,33 @@
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Flatten, Reshape, Masking, Lambda
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import data 
 
-
-# Assuming you have a list of dataset paths
-X_dataset_paths = [
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210101-20210131.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210201-20210228.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210301-20210331.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210401-20210430.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210501-20210531.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210601-20210630.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210701-20210731.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210801-20210831.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210901-20210930.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20211001-20211031.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20211101-20211130.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20211201-20211231.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220101-20220131.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220201-20220228.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220301-20220331.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220401-20220430.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220501-20220531.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220601-20220630.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220701-20220731.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220801-20220831.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220901-20220930.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20221001-20221031.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20221101-20221130.nc',
-    'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20221201-20221231.nc'
-]
-
-y_dataset_paths = [
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210101-20210131.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210201-20210228.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210301-20210331.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210401-20210430.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210501-20210531.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210601-20210630.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210701-20210731.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210801-20210831.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20210901-20210930.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20211001-20211031.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20211101-20211130.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20211201-20211231.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220101-20220131.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220201-20220228.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220301-20220331.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220401-20220430.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220501-20220531.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220601-20220630.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220701-20220731.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220801-20220831.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220901-20220930.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20221001-20221031.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20221101-20221130.nc',
-    'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20221201-20221231.nc'
-]
-
-# Initialize an empty list to store all rainfall_numpy instances
-rainfall_instances = []
-
-# Loop through each data file
-for file in X_dataset_paths:
-    with xr.open_dataset(file) as ds:
-        # Extract the rainfall data for all time steps
-        rainfall_data = ds['rainfall'].values
-        #print(rainfall_data.shape)
-
-        # Append the data for all time steps to the list
-        rainfall_instances.append(rainfall_data)
-
-# Concatenate the list of rainfall instances along the first axis
-X_train = np.concatenate(rainfall_instances, axis=0)
-#print(X_train.shape)
-
-
-# Initialize an empty list to store all rainfall_numpy instances
-rainfall_instances = []
-
-# Loop through each data file
-for file in y_dataset_paths:
-    with xr.open_dataset(file) as ds:
-        # Extract the rainfall data for all time steps
-        rainfall_data = ds['rainfall'].values
-        #print(rainfall_data.shape)
-
-        # Append the data for all time steps to the list
-        rainfall_instances.append(rainfall_data)
-
-# Concatenate the list of rainfall instances along the first axis
-y_train = np.concatenate(rainfall_instances, axis=0)
-#print(y_train.shape)
-
-
-
-########### TEST OF SCALABILITY
 X_paths, y_paths = data.generate_rainfall_paths(2021, 2022, 60, 12)
+
 X, y = data.load_data(X_paths, y_paths)
-
-print(X.shape)
-print(X_train.shape)
-
-#if np.array_equal(X_train, X):
-#    print("Fingers crossed...")
-#    if np.array_equal(y_train, y):
-#        print("IT WORKS!!!")
-#else:
-#    print("FUCK.")
-
-### MODEL TIME
-
-### WE NEED MASKING
-
-# Assuming you have your X_train and y_train data loaded
 
 X_train = X 
 y_train = y 
 
-# Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
-
-# Normalize the data (optional but often beneficial)
-X_train_normalized = X_train  # Adjust as needed
-X_test_normalized = X_test    # Adjust as needed
+X_train, X_test, y_train, y_test = data.test_train_split(X, y, 0.2, random_state=10)
 
 # Create masks for NaN values in X_train and y_train for the entire dataset
-nan_mask_X_train = np.isnan(X_train_normalized)
+nan_mask_X_train = np.isnan(X_train)
 nan_mask_y_train = np.isnan(y_train)
 
 # Fill NaN values with zeros or any other appropriate value for each dataset
-X_train_masked = np.where(nan_mask_X_train, 0, X_train_normalized)
+X_train_masked = np.where(nan_mask_X_train, 0, X_train)
 y_train_masked = np.where(nan_mask_y_train, 0, y_train)
 
 # Flatten the input data
 X_train_flat = X_train_masked.reshape((X_train_masked.shape[0], -1))
-X_test_flat = X_test_normalized.reshape((X_test_normalized.shape[0], -1))
+X_test_flat = X_test.reshape((X_test.shape[0], -1))
 
 # Define a simple neural network model with Masking layer
 model = Sequential()

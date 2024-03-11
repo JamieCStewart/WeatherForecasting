@@ -13,6 +13,8 @@ def main():
 
     X, y = data.load_data(X_paths, y_paths)
 
+    X_train, X_test, y_train, y_test = data.test_train_split(X, y, 0.2, random_state=10)
+
 
 
 if __name__ == "__main__":
