@@ -175,12 +175,6 @@ with xr.open_dataset(new_12) as ds_new_12:
     data_slice = ds_new_12.isel(time=time_for_image)
     y_new_12 = data_slice['rainfall'].values
 
-nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
-print(f"Number of NaN values in predicted 12km: {nan_count}")
-
-nan_count = np.sum(np.isnan(y_new_12))
-print(f"Number of NaN values in true value: {nan_count}")
-
 # Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
 plt.figure(figsize=(18, 6))
 
@@ -194,7 +188,9 @@ plt.figure(figsize=(18, 6))
 X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
 
 # Apply the NaN mask to predictions to match the pattern in y_train
-predictions_new_60_reshaped[0] = np.where(nan_mask_y_train, np.nan, predictions_reshaped[0])
+predictions_new_60_reshaped[0][nan_mask_y_train[0]] = np.nan
+print(nan_mask_y_train[0].shape)
+print(predictions_new_60_reshaped[0].shape)
 
 
 #### TEST Linear Interpolation  NOT WORKING
@@ -234,5 +230,9 @@ print(X_new_60_flat[0].shape)
 print(predictions_new_60_reshaped[0].shape)
 print(linear_interp_predictions[0].shape)
 print(y_new_12.shape)
-##### Masking not working correctly --> Prediction outputs 0s insstead of NaNs 
 
+nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
+print(f"Number of NaN values in predicted 12km: {nan_count}")
+
+nan_count = np.sum(np.isnan(y_new_12))
+print(f"Number of NaN values in true value: {nan_count}")
