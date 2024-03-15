@@ -8,7 +8,7 @@ from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import data 
 
-X_paths, y_paths = data.generate_rainfall_paths(2021, 2022, 60, 12)
+X_paths, y_paths = data.generate_rainfall_paths(2000, 2019, 60, 12)
 
 X, y = data.load_data(X_paths, y_paths)
 
@@ -58,7 +58,7 @@ predictions_reshaped = predictions.reshape((predictions.shape[0], y_test.shape[1
 new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20201201-20201231.nc'
 new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20201201-20201231.nc' 
 
-time_for_image = 20
+time_for_image = 0
 
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:

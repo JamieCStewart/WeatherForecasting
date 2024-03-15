@@ -8,7 +8,7 @@ import configparser
 
 # Define the resolution
 res = 1
-start_year = 1950
+start_year = 2011
 end_year = 2022
 
 # Read the configuration file

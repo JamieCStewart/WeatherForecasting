@@ -9,7 +9,7 @@
 import data
 
 def main():
-    X_paths, y_paths = data.generate_rainfall_paths(2021, 2022, 60, 12)
+    X_paths, y_paths = data.generate_rainfall_paths(2010, 2019, 5, 1)
 
     X, y = data.load_data(X_paths, y_paths)
 
