@@ -7,7 +7,7 @@ from tensorflow.keras.layers import Dense, Flatten, Reshape, Masking, Lambda
 from tensorflow.keras.optimizers import Adam
 import tensorflow as tf
 import data 
-from scipy.interpolate import NearestNDInterpolator
+from scipy.interpolate import NearestNDInterpolator, griddata
 
 X_paths, y_paths = data.generate_rainfall_paths(2000, 2019, 60, 12)
 
@@ -41,7 +41,7 @@ model.add(Dense(np.prod(y_train.shape[1:]), activation='linear'))  # Adjust the 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
 
 # Train the model with the masked data
-model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=10, batch_size=32, validation_split=0.1)
+model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
 
 # Evaluate the model on the test set
 test_loss = model.evaluate(X_test_flat, y_test.reshape((y_test.shape[0], -1)))
@@ -88,8 +88,7 @@ X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], 
 # Find the maximum value across all three data arrays
 max_value = np.max([np.nanmax(X_new_60_flat), np.nanmax(predictions_new_60_reshaped), np.nanmax(y_new_12)])
 
-# Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
-plt.figure(figsize=(18, 6))
+
 
 X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
 
@@ -99,41 +98,25 @@ print(nan_mask_y_train[0].shape)
 print(predictions_new_60_reshaped[0].shape)
 
 
-#### TEST Linear Interpolation  NOT WORKING
-import numpy as np
-from scipy.interpolate import griddata
+#### TEST Linear Interpolation  
+# Extract projection coordinates
+x_grid = ds_new_12['projection_x_coordinate'].values
+y_grid = ds_new_12['projection_y_coordinate'].values
 
-# Assuming ds_new_60 and ds_new_12 are xarray datasets with 'longitude', 'latitude', and 'rainfall' variables
+linear_interp = ds_new_60[['rainfall']].interp(
+            projection_x_coordinate=x_grid,
+            projection_y_coordinate=y_grid,
+            method="linear",
+        )
 
-# Extract coordinates and rainfall values from ds_new_60
-x = ds_new_60.longitude.values.flatten()
-y = ds_new_60.latitude.values.flatten()
-z = ds_new_60.rainfall.values.flatten()
-
-# Get indices of non-NaN values
-valid_indices = np.where(~np.isnan(z))[0]
-
-# Filter out NaN values and corresponding coordinates
-x_valid = x[valid_indices]
-y_valid = y[valid_indices]
-z_valid = z[valid_indices]
-
-# Interpolate rainfall values for ds_new_12 coordinates using griddata
-xi = ds_new_12.longitude.values.flatten()
-yi = ds_new_12.latitude.values.flatten()
-linear_interp_predictions = griddata((x_valid, y_valid), z_valid, (xi, yi), method='linear')
-
-# Reshape the interpolated values to match the grid shape of ds_new_12
-linear_interp_predictions = linear_interp_predictions.reshape(ds_new_12.rainfall.shape)
-
-# Now linear_interp_predictions contains the interpolated rainfall values for ds_new_12 coordinates
+print("Fingers crossed this works")
+linear_interp_data = linear_interp['rainfall']
 
 
-# Now linear_interp_predictions contains the interpolated rainfall values for ds_new_12 coordinates
 
 
-# Now linear_interp_predictions contains the interpolated rainfall values for ds_new_12 coordinates
-
+# Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
+plt.figure(figsize=(18, 6))
 
 # Plot original 60km data
 plt.subplot(1, 4, 1)
@@ -157,7 +140,7 @@ plt.colorbar()
 
 # Plot linear interpolation predictions
 plt.subplot(1, 4, 4)
-plt.imshow(linear_interp_predictions, cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.imshow(linear_interp_data[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
 plt.title('Linear Interpolation 12km')
 plt.colorbar()
 
@@ -166,7 +149,7 @@ plt.show()
 
 print(X_new_60_flat[0].shape)
 print(predictions_new_60_reshaped[0].shape)
-print(linear_interp_predictions[0].shape)
+print(linear_interp_data[0].shape)
 print(y_new_12.shape)
 
 nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
