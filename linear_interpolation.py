@@ -1,7 +1,37 @@
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import griddata, RegularGridInterpolator
+from scipy.interpolate import griddata
+from scipy.spatial import cKDTree
+
+def inverse_distance_weighting(x, y, z, xi, yi, power=2):
+    """
+    Perform inverse distance weighting interpolation.
+    
+    Parameters:
+        x (array-like): Array of x coordinates of the sampled points.
+        y (array-like): Array of y coordinates of the sampled points.
+        z (array-like): Array of values at the sampled points.
+        xi (array-like): Array of x coordinates of the grid points to be interpolated.
+        yi (array-like): Array of y coordinates of the grid points to be interpolated.
+        power (float, optional): Power parameter for distance weighting. Default is 2.
+        
+    Returns:
+        zi (ndarray): Interpolated values at the grid points.
+    """
+    tree = cKDTree(list(zip(x, y)))
+    distances, indices = tree.query(np.c_[xi.flatten(), yi.flatten()])
+    
+    zi = np.zeros_like(xi.flatten())
+    for i in range(len(zi)):
+        if distances[i] == 0:  # If the grid point coincides with a sampled point
+            zi[i] = z[indices[i]]
+        else:
+            weights = 1 / distances[i]**power
+            zi[i] = np.sum(weights * z[indices[i]]) / np.sum(weights)
+    
+    return zi.reshape(xi.shape)
+
 
 #### Testing the model 
 
@@ -21,38 +51,70 @@ with xr.open_dataset(new_60) as ds_new_60:
     # Load the grid coordinates from new_12 for interpolation
     with xr.open_dataset(new_12) as ds_new_12:
         data_slice_12 = ds_new_12.isel(time=time_for_image)
-        x_grid_12 = ds_new_12['projection_x_coordinate'].values
-        y_grid_12 = ds_new_12['projection_y_coordinate'].values
+        x_grid_12 = data_slice_12['projection_x_coordinate'].values
+        y_grid_12 = data_slice_12['projection_y_coordinate'].values
         rainfall_data_12 = data_slice_12['rainfall'].values
 
         x_mesh_60, y_mesh_60 = np.meshgrid(x_grid_60, y_grid_60)
         x_mesh_12, y_mesh_12 = np.meshgrid(x_grid_12, y_grid_12)
 
         # Perform linear interpolation from 60km to 12km grid
-        interp_rainfall_12 = griddata((x_mesh_60.flatten(), y_mesh_60.flatten()), 
+        interp_rainfall_linear = griddata((x_mesh_60.flatten(), y_mesh_60.flatten()), 
                               rainfall_data_60.flatten(), 
                               (x_mesh_12, y_mesh_12), 
                               method='linear')
+        
+        # Perform nearest neighbor interpolation from 60km to 12km grid
+        interp_rainfall_nearest = griddata((x_mesh_60.flatten(), y_mesh_60.flatten()), 
+                              rainfall_data_60.flatten(), 
+                              (x_mesh_12, y_mesh_12), 
+                              method='nearest')
 
-plt.figure(figsize=(10, 6))
+        print(x_grid_12.shape)
+        print(y_grid_12.shape)
+        print(rainfall_data_12.shape)
 
-# Plot interpolated rainfall at 12km resolution
-plt.subplot(1, 2, 1)
-plt.imshow(interp_rainfall_12, cmap='Blues', origin='lower', aspect='auto')
+        # Perform inverse distance weighting interpolation from 60km to 12km grid
+        interp_rainfall_idw = inverse_distance_weighting(x_mesh_60.flatten(), y_mesh_60.flatten(), rainfall_data_60.flatten(), x_mesh_12, y_mesh_12)
+
+plt.figure(figsize=(15, 5))
+
+# Plot linearly interpolated rainfall at 12km resolution
+plt.subplot(1, 4, 1)
+plt.imshow(interp_rainfall_linear, cmap='Blues', origin='lower', aspect='auto')
 plt.colorbar(label='Rainfall (mm)')
-plt.title('Interpolated Rainfall at 12km Resolution')
+plt.title('Linear Interpolation')
+
+# Plot nearest neighbor interpolated rainfall at 12km resolution
+plt.subplot(1, 4, 2)
+plt.imshow(interp_rainfall_nearest, cmap='Blues', origin='lower', aspect='auto')
+plt.colorbar(label='Rainfall (mm)')
+plt.title('Nearest Neighbor Interpolation')
+
+# Plot nearest neighbor interpolated rainfall at 12km resolution
+plt.subplot(1, 4, 3)
+plt.imshow(interp_rainfall_idw, cmap='Blues', origin='lower', aspect='auto')
+plt.colorbar(label='Rainfall (mm)')
+plt.title('Inverse distance weighting')
 
 # Overlay true rainfall values at 12km resolution
-plt.subplot(1, 2, 2)
+plt.subplot(1, 4, 4)
 plt.imshow(rainfall_data_12, cmap='Blues', origin='lower', aspect='auto')
-plt.xlabel('X Coordinate')
-plt.ylabel('Y Coordinate')
-plt.title('Interpolated Rainfall vs True Values at 12km Resolution')
+plt.colorbar(label='Rainfall (mm)')
+plt.title('True Rainfall Values')
 
+plt.tight_layout()
 plt.show()
 
-nan_count = np.sum(np.isnan(interp_rainfall_12))
-print(f"Number of NaN values in predicted 12km: {nan_count}")
+
+nan_count = np.sum(np.isnan(interp_rainfall_linear))
+print(f"Number of NaN values in linear predicted 12km: {nan_count}")
+
+nan_count = np.sum(np.isnan(interp_rainfall_nearest))
+print(f"Number of NaN values in nearest neighbour predicted 12km: {nan_count}")
+
+nan_count = np.sum(np.isnan(interp_rainfall_idw))
+print(f"Number of NaN values in idw predicted 12km: {nan_count}")
 
 nan_count = np.sum(np.isnan(rainfall_data_12))
 print(f"Number of NaN values in true value: {nan_count}")
