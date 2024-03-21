@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import griddata
 from scipy.spatial import cKDTree
 
-def inverse_distance_weighting(x, y, z, xi, yi, power=2):
+### Problem with masking!!!!!
+### Mask before or after interpolation?? 3
+
+### Temporary solution: Assign all NaNs to 0 for both linear interpolation and the NN outputs, then pixelwise metrics seem valid
+
+def inverse_distance_weighting(x, y, z, xi, yi, power=1, default_value=0):
     """
     Perform inverse distance weighting interpolation.
     
@@ -15,6 +20,7 @@ def inverse_distance_weighting(x, y, z, xi, yi, power=2):
         xi (array-like): Array of x coordinates of the grid points to be interpolated.
         yi (array-like): Array of y coordinates of the grid points to be interpolated.
         power (float, optional): Power parameter for distance weighting. Default is 2.
+        default_value (float, optional): Default value to assign to NaNs in the output array. Default is 0.
         
     Returns:
         zi (ndarray): Interpolated values at the grid points.
@@ -22,15 +28,17 @@ def inverse_distance_weighting(x, y, z, xi, yi, power=2):
     tree = cKDTree(list(zip(x, y)))
     distances, indices = tree.query(np.c_[xi.flatten(), yi.flatten()])
     
-    zi = np.zeros_like(xi.flatten())
+    zi = np.zeros_like(xi.flatten()) + default_value
     for i in range(len(zi)):
-        if distances[i] == 0:  # If the grid point coincides with a sampled point
-            zi[i] = z[indices[i]]
-        else:
-            weights = 1 / distances[i]**power
-            zi[i] = np.sum(weights * z[indices[i]]) / np.sum(weights)
+        if not np.isnan(distances[i]):  # Exclude NaN distances
+            if distances[i] == 0:  # If the grid point coincides with a sampled point
+                zi[i] = z[indices[i]]
+            else:
+                weights = 1 / distances[i]**power
+                zi[i] = np.sum(weights * z[indices[i]]) / np.sum(weights)
     
     return zi.reshape(xi.shape)
+
 
 
 #### Testing the model 
@@ -79,29 +87,35 @@ with xr.open_dataset(new_60) as ds_new_60:
 
 plt.figure(figsize=(15, 5))
 
+# Input
+plt.subplot(1, 5, 1)
+plt.imshow(rainfall_data_60, cmap='Blues', origin='lower', aspect='auto')
+plt.colorbar(label='Rainfall (mm)')
+plt.title('Input 60km forecast')
+
 # Plot linearly interpolated rainfall at 12km resolution
-plt.subplot(1, 4, 1)
+plt.subplot(1, 5, 2)
 plt.imshow(interp_rainfall_linear, cmap='Blues', origin='lower', aspect='auto')
 plt.colorbar(label='Rainfall (mm)')
 plt.title('Linear Interpolation')
 
 # Plot nearest neighbor interpolated rainfall at 12km resolution
-plt.subplot(1, 4, 2)
+plt.subplot(1, 5, 3)
 plt.imshow(interp_rainfall_nearest, cmap='Blues', origin='lower', aspect='auto')
 plt.colorbar(label='Rainfall (mm)')
 plt.title('Nearest Neighbor Interpolation')
 
 # Plot nearest neighbor interpolated rainfall at 12km resolution
-plt.subplot(1, 4, 3)
+plt.subplot(1, 5, 4)
 plt.imshow(interp_rainfall_idw, cmap='Blues', origin='lower', aspect='auto')
 plt.colorbar(label='Rainfall (mm)')
 plt.title('Inverse distance weighting')
 
 # Overlay true rainfall values at 12km resolution
-plt.subplot(1, 4, 4)
+plt.subplot(1, 5, 5)
 plt.imshow(rainfall_data_12, cmap='Blues', origin='lower', aspect='auto')
 plt.colorbar(label='Rainfall (mm)')
-plt.title('True Rainfall Values')
+plt.title('Output 12km forecast')
 
 plt.tight_layout()
 plt.show()
