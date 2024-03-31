@@ -15,16 +15,17 @@ time_for_image = 0
 
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:
+    ds_new_60 = ds_new_60.interpolate_na(dim='projection_x_coordinate', method='nearest')
+    ds_new_60 = ds_new_60.interpolate_na(dim='projection_y_coordinate', method='nearest')
     data_slice_60 = ds_new_60.isel(time=time_for_image)
+    rainfall_data_60 = data_slice_60['rainfall'].values
+
     x_grid_60 = data_slice_60['projection_x_coordinate'].values
     y_grid_60 = data_slice_60['projection_y_coordinate'].values
 
     # Load the grid coordinates from new_12 for interpolation
     with xr.open_dataset(new_12) as ds_new_12:
-        ds_new_12 = ds_new_12.interpolate_na(dim="projection_x_coordinate", method="linear", max_gap=50)
-
         data_slice_12 = ds_new_12.isel(time=time_for_image)
-        #data_slice_12 = data_slice_12.interpolate_na(dim="lat", method="linear", max_gap=50)
 
         x_grid_12 = data_slice_12['projection_x_coordinate'].values
         y_grid_12 = data_slice_12['projection_y_coordinate'].values
@@ -34,11 +35,13 @@ with xr.open_dataset(new_60) as ds_new_60:
         x_mesh_12, y_mesh_12 = np.meshgrid(x_grid_12, y_grid_12)
 
         ### STEP 1 - Input ghost values
-        #data_slice_60['rainfall'] = data_slice_60['rainfall'].fillna(0)
+        # Nearest neighbour not working
+        ## Suggest input average rainfall or 0
+        average_rainfall = data_slice_60['rainfall'].mean()
+        data_slice_60['rainfall'] = data_slice_60['rainfall'].fillna(average_rainfall)
         rainfall_data_60 = data_slice_60['rainfall'].values
-        nan_count = np.sum(np.isnan(rainfall_data_60))
-        print(f"Number of NaN values in ghost values: {nan_count}")
-
+        #nan_count = np.sum(np.isnan(rainfall_data_60))
+        #print(f"Number of NaN values in ghost values: {nan_count}")
 
         ### STEP 2 - Interpolation 
         # Perform linear interpolation from 60km to 12km grid
@@ -46,7 +49,6 @@ with xr.open_dataset(new_60) as ds_new_60:
                               rainfall_data_60.flatten(), 
                               (x_mesh_12, y_mesh_12), 
                               method='linear')
-
 
         ### STEP 3 - Apply a mask
         interp_rainfall_linear = interp_rainfall_linear.copy()
@@ -74,15 +76,6 @@ plt.title('Output 12km forecast')
 
 plt.tight_layout()
 plt.show()
-
-nan_count = np.sum(np.isnan(rainfall_data_60))
-print(f"Number of NaN values in input with ghost values: {nan_count}")
-
-nan_count = np.sum(np.isnan(interp_rainfall_linear))
-print(f"Number of NaN values in linear predicted 12km: {nan_count}")
-
-nan_count = np.sum(np.isnan(rainfall_data_12))
-print(f"Number of NaN values in true value: {nan_count}")
 
 
 
