@@ -97,29 +97,11 @@ predictions_new_60_reshaped[0][nan_mask_y_train[0]] = np.nan
 print(nan_mask_y_train[0].shape)
 print(predictions_new_60_reshaped[0].shape)
 
-
-#### TEST Linear Interpolation  
-# Extract projection coordinates
-x_grid = ds_new_12['projection_x_coordinate'].values
-y_grid = ds_new_12['projection_y_coordinate'].values
-
-linear_interp = ds_new_60[['rainfall']].interp(
-            projection_x_coordinate=x_grid,
-            projection_y_coordinate=y_grid,
-            method="linear",
-        )
-
-print("Fingers crossed this works")
-linear_interp_data = linear_interp['rainfall']
-
-
-
-
 # Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
 plt.figure(figsize=(18, 6))
 
 # Plot original 60km data
-plt.subplot(1, 4, 1)
+plt.subplot(1, 3, 1)
 cmap = plt.cm.Blues  # Choose your colormap
 cmap.set_bad(color=cmap(0.0))
 plt.imshow(X_new_60_flat[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
@@ -127,33 +109,16 @@ plt.title('Original 60km')
 plt.colorbar()
 
 # Plot predicted data
-plt.subplot(1, 4, 2)
+plt.subplot(1, 3, 2)
 plt.imshow(predictions_new_60_reshaped[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
 plt.title('Predicted 12km')
 plt.colorbar()
 
 # Plot true data
-plt.subplot(1, 4, 3)
+plt.subplot(1, 3, 3)
 plt.imshow(y_new_12, cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
 plt.title('True 12km')
 plt.colorbar()
 
-# Plot linear interpolation predictions
-plt.subplot(1, 4, 4)
-plt.imshow(linear_interp_data[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
-plt.title('Linear Interpolation 12km')
-plt.colorbar()
-
 plt.tight_layout()
 plt.show()
-
-print(X_new_60_flat[0].shape)
-print(predictions_new_60_reshaped[0].shape)
-print(linear_interp_data[0].shape)
-print(y_new_12.shape)
-
-nan_count = np.sum(np.isnan(predictions_new_60_reshaped))
-print(f"Number of NaN values in predicted 12km: {nan_count}")
-
-nan_count = np.sum(np.isnan(y_new_12))
-print(f"Number of NaN values in true value: {nan_count}")
