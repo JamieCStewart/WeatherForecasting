@@ -34,21 +34,20 @@ X_test_flat = X_test.reshape((X_test.shape[0], -1))
 model = Sequential()
 model.add(Masking(mask_value=0, input_shape=(X_train_flat.shape[1],)))
 model.add(Dense(128, activation='relu'))
-model.add(Dense(64, activation='relu'))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(128, activation='relu'))
 model.add(Dense(np.prod(y_train.shape[1:]), activation='linear'))  # Adjust the output dimensions
 
 # Compile the model
 model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
 
 # Train the model with the masked data
-model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
-
-# Evaluate the model on the test set
-test_loss = model.evaluate(X_test_flat, y_test.reshape((y_test.shape[0], -1)))
-print(f'Test Loss: {test_loss}')
+model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=200, batch_size=32, validation_split=0.1)
 
 # Make predictions
 predictions = model.predict(X_test_flat)
+
+print(predictions.shape)
 
 # Reshape predictions to match the original shape of y_test
 predictions_reshaped = predictions.reshape((predictions.shape[0], y_test.shape[1], y_test.shape[2]))
@@ -88,14 +87,14 @@ X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], 
 # Find the maximum value across all three data arrays
 max_value = np.max([np.nanmax(X_new_60_flat), np.nanmax(predictions_new_60_reshaped), np.nanmax(y_new_12)])
 
-
-
 X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
 
 # Apply the NaN mask to predictions to match the pattern in y_train
 predictions_new_60_reshaped[0][nan_mask_y_train[0]] = np.nan
-print(nan_mask_y_train[0].shape)
-print(predictions_new_60_reshaped[0].shape)
+
+# Evaluate the model 
+loss = np.nanmean((predictions_new_60_reshaped[0] - y_new_12)**2)
+print(f'Test Loss: {loss}')
 
 # Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
 plt.figure(figsize=(18, 6))

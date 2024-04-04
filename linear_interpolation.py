@@ -7,14 +7,17 @@ from scipy.ndimage import distance_transform_edt, binary_fill_holes
 
 #### Testing the model 
 
-new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20201101-20201130.nc'
-new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20201101-20201130.nc' 
+new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220101-20220131.nc'
+new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220101-20220131.nc' 
 
 # Define the time index for selecting data
 time_for_image = 0
 
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:
+    data_slice_60 = ds_new_60.isel(time=time_for_image)
+    rainfall_data_60_original = data_slice_60['rainfall'].values
+
     ds_new_60 = ds_new_60.interpolate_na(dim='projection_x_coordinate', method='nearest')
     ds_new_60 = ds_new_60.interpolate_na(dim='projection_y_coordinate', method='nearest')
     data_slice_60 = ds_new_60.isel(time=time_for_image)
@@ -56,26 +59,32 @@ with xr.open_dataset(new_60) as ds_new_60:
 
 plt.figure(figsize=(15, 5))
 
+# Calculate the max
+vmax = max(np.nanmax(rainfall_data_60_original), np.nanmax(interp_rainfall_linear), np.nanmax(rainfall_data_12))
+
 # Input
 plt.subplot(1, 3, 1)
-plt.imshow(rainfall_data_60, cmap='Blues', origin='lower', aspect='auto')
+plt.imshow(rainfall_data_60_original, cmap='Blues', origin='lower', aspect='auto', vmin=0, vmax=vmax)
 plt.colorbar(label='Rainfall (mm)')
-plt.title('Input 60km forecast')
+plt.title('60km forecast')
 
 # Plot linearly interpolated rainfall at 12km resolution
 plt.subplot(1, 3, 2)
-plt.imshow(interp_rainfall_linear, cmap='Blues', origin='lower', aspect='auto')
+plt.imshow(interp_rainfall_linear, cmap='Blues', origin='lower', aspect='auto', vmin=0, vmax=vmax)
 plt.colorbar(label='Rainfall (mm)')
 plt.title('Linear Interpolation')
 
 # Overlay true rainfall values at 12km resolution
 plt.subplot(1, 3, 3)
-plt.imshow(rainfall_data_12, cmap='Blues', origin='lower', aspect='auto')
+plt.imshow(rainfall_data_12, cmap='Blues', origin='lower', aspect='auto', vmin=0, vmax=vmax)
 plt.colorbar(label='Rainfall (mm)')
-plt.title('Output 12km forecast')
+plt.title('12km forecast')
+
+plt.savefig('linear_interpolation_example.png')
 
 plt.tight_layout()
 plt.show()
+
 
 
 

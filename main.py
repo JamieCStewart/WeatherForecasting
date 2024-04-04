@@ -27,14 +27,6 @@ def main():
     # Train Model 1
     history1 = model1.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
 
-    # Evaluate Model 1
-    test_loss1 = model1.evaluate(X_test_flat, y_test.reshape((y_test.shape[0], -1)))
-    print(f'Test Loss for Model 1: {test_loss1}')
-
-    # Make predictions for Model 1
-    predictions1 = model1.predict(X_test_flat)
-    predictions1_reshaped = predictions1.reshape((predictions1.shape[0], y_test.shape[1], y_test.shape[2]))
-
     # Create and compile Model 2
     model2 = create_model(input_shape, output_shape, model_type=2)
     model2 = compile_model(model2)
@@ -42,13 +34,10 @@ def main():
     # Train Model 2
     history2 = model2.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
 
-    # Evaluate Model 2
-    test_loss2 = model2.evaluate(X_test_flat, y_test.reshape((y_test.shape[0], -1)))
-    print(f'Test Loss for Model 2: {test_loss2}')
+    # Evaluate both models on the same day
+    ###  Create function 
+    
 
-    # Make predictions for Model 2
-    predictions2 = model2.predict(X_test_flat)
-    predictions2_reshaped = predictions2.reshape((predictions2.shape[0], y_test.shape[1], y_test.shape[2]))
 
 
 
