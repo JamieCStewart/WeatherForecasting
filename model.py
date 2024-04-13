@@ -1,7 +1,7 @@
 # model.py
-
+import numpy as np 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Flatten, Masking
+from tensorflow.keras.layers import Dense, Flatten, Masking, Conv2D, MaxPooling2D
 from tensorflow.keras.optimizers import Adam
 
 def create_model(input_shape, output_shape, model_type=1):
@@ -23,8 +23,11 @@ def create_model1(input_shape, output_shape):
 
 def create_model2(input_shape, output_shape):
     model = Sequential()
-    model.add(Flatten(input_shape=input_shape))
-    model.add(Dense(256, activation='relu'))
+    model.add(Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Flatten())
     model.add(Dense(128, activation='relu'))
     model.add(Dense(np.prod(output_shape), activation='linear'))
     return model

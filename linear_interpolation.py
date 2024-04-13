@@ -7,11 +7,11 @@ from scipy.ndimage import distance_transform_edt, binary_fill_holes
 
 #### Testing the model 
 
-new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20220101-20220131.nc'
-new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20220101-20220131.nc' 
+new_12 = 'Data/12km/Rainfall/rainfall_hadukgrid_uk_12km_day_20010401-20010430.nc'
+new_60 = 'Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20010401-20010430.nc' 
 
 # Define the time index for selecting data
-time_for_image = 0
+time_for_image = 27
 
 # Load and preprocess the new_60 data
 with xr.open_dataset(new_60) as ds_new_60:
@@ -84,6 +84,8 @@ plt.savefig('linear_interpolation_example.png')
 
 plt.tight_layout()
 plt.show()
+
+
 
 
 

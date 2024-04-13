@@ -97,25 +97,23 @@ loss = np.nanmean((predictions_new_60_reshaped[0] - y_new_12)**2)
 print(f'Test Loss: {loss}')
 
 # Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
-plt.figure(figsize=(18, 6))
+plt.figure(figsize=(12, 8))
 
 # Plot original 60km data
-plt.subplot(1, 3, 1)
-cmap = plt.cm.Blues  # Choose your colormap
-cmap.set_bad(color=cmap(0.0))
-plt.imshow(X_new_60_flat[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.subplot(2, 1, 1)
+plt.imshow(X_new_60_flat[0], cmap='Blues', origin='lower', aspect='auto')
 plt.title('Original 60km')
 plt.colorbar()
 
 # Plot predicted data
-plt.subplot(1, 3, 2)
-plt.imshow(predictions_new_60_reshaped[0], cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.subplot(2, 2, 3)
+plt.imshow(predictions_new_60_reshaped[0], cmap='Blues', origin='lower', aspect='auto')
 plt.title('Predicted 12km')
 plt.colorbar()
 
 # Plot true data
-plt.subplot(1, 3, 3)
-plt.imshow(y_new_12, cmap=cmap, origin='lower', aspect='auto', vmin=0, vmax=max_value)  # Set vmin and vmax
+plt.subplot(2, 2, 4)
+plt.imshow(y_new_12, cmap='Blues', origin='lower', aspect='auto')
 plt.title('True 12km')
 plt.colorbar()
 
