@@ -4,7 +4,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 def generate_rainfall_paths(start_year, end_year, low_res, high_res):
-    months = [f"{i:02d}" for i in range(1, 13)]  # Generate month strings with leading zeros
+    # Generate month strings with leading zeros
+    months = [f"{i:02d}" for i in range(1, 13)]
     
     X_dataset_paths = []
     y_dataset_paths = []
@@ -12,8 +13,16 @@ def generate_rainfall_paths(start_year, end_year, low_res, high_res):
     for year in range(start_year, end_year + 1):
         for month in months:
             last_day = calendar.monthrange(year, int(month))[1]
-            X_file_path = f"Data/{low_res}km/Rainfall/rainfall_hadukgrid_uk_{low_res}km_day_{year}{month}01-{year}{month}{last_day}.nc"
-            y_file_path = f"Data/{high_res}km/Rainfall/rainfall_hadukgrid_uk_{high_res}km_day_{year}{month}01-{year}{month}{last_day}.nc"
+            X_file_path = (
+                           f"Data/{low_res}km/Rainfall/rainfall_"
+                           f"hadukgrid_uk_{low_res}km_day_{year}"
+                           f"{month}01-{year}{month}{last_day}.nc"
+                           )
+            y_file_path = (
+                           f"Data/{high_res}km/Rainfall/rainfall_"
+                           f"hadukgrid_uk_{high_res}km_day_{year}"
+                           f"{month}01-{year}{month}{last_day}.nc"
+                           )
             X_dataset_paths.append(X_file_path)
             y_dataset_paths.append(y_file_path)
 
@@ -47,11 +56,7 @@ def test_train_split(X, y, ratio, random_state=None):
     if random_state == None:
         random_state = random.randint(1, 1000)
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=ratio, 
-        random_state=random_state)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, 
+        test_size=ratio, random_state=random_state)
 
     return X_train, X_test, y_train, y_test 
-
-
-def create_mask():
-    print("Stuff to do")

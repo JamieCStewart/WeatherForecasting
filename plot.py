@@ -2,9 +2,12 @@ import xarray as xr
 import matplotlib.pyplot as plt
 
 # Load the datasets
-ds1 = xr.open_dataset('Data/1km/Rainfall/rainfall_hadukgrid_uk_1km_day_20210101-20210131.nc')
-ds2 = xr.open_dataset('Data/5km/Rainfall/rainfall_hadukgrid_uk_5km_day_20210101-20210131.nc')
-ds3 = xr.open_dataset('Data/60km/Rainfall/rainfall_hadukgrid_uk_60km_day_20210101-20210131.nc')
+ds1 = xr.open_dataset('Data/1km/Rainfall/rainfall_hadukgrid'
+                      '_uk_1km_day_20210101-20210131.nc')
+ds2 = xr.open_dataset('Data/5km/Rainfall/rainfall_hadukgrid'
+                      '_uk_5km_day_20210101-20210131.nc')
+ds3 = xr.open_dataset('Data/60km/Rainfall/rainfall_hadukgrid'
+                      '_uk_60km_day_20210101-20210131.nc')
 
 # Create a 3x3 grid of subplots
 fig, axs = plt.subplots(3, 3, figsize=(10, 8))
@@ -30,9 +33,10 @@ for i, ax in enumerate(axs.flatten()):
     lat = data_slice['latitude'].values
 
     # Create a map plot using xarray.plot and imshow with flipped axes
-    img = ax.imshow(data_slice['rainfall'], cmap='Blues', vmin=0, vmax=data_slice['rainfall'].max(),
+    img = ax.imshow(data_slice['rainfall'], cmap='Blues', 
+                    vmin=0, vmax=data_slice['rainfall'].max(),
                     extent=[lon.min(), lon.max(), lat.min(), lat.max()],
-                    origin='lower')  # Setting origin to 'lower' flips the y-axis
+                    origin='lower')
 
     # Add a colorbar
     cbar = plt.colorbar(img, ax=ax, label='Rainfall (mm)')

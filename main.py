@@ -20,13 +20,14 @@ def main():
 
     X, y = data.load_data(X_paths, y_paths)
 
-    X_train, X_test, y_train, y_test = data.test_train_split(X, y, 0.2, random_state=10)
+    X_train, X_test, y_train, y_test = data.test_train_split(X, 
+                                        y, 0.2, random_state=10)
 
-    # Create masks for NaN values in X_train and y_train for the entire dataset
+    # Create masks for NaN values in X_train and y_train
     nan_mask_X_train = np.isnan(X_train)
     nan_mask_y_train = np.isnan(y_train)
 
-    # Fill NaN values with zeros or any other appropriate value for each dataset
+    # Fill NaN values with zeros 
     X_train_masked = np.where(nan_mask_X_train, 0, X_train)
     y_train_masked = np.where(nan_mask_y_train, 0, y_train)
 
@@ -85,7 +86,9 @@ def main():
     #model4 = compile_model(model4)
 
     # Train Model 4
-    #history4 = model4.fit(X_train_reshaped, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
+    #history4 = model4.fit(X_train_reshaped, 
+    #             y_train_masked.reshape((y_train_masked.shape[0], -1)),
+    #             epochs=5, batch_size=32, validation_split=0.1)
 
 
 
@@ -99,16 +102,25 @@ def main():
     # Write the initial header row to the CSV file
     with open(file_name, mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['Epochs', 'Model 1 Loss', 'Model 2 Loss', 'Model 3 Loss','Model 4 Loss'])
+        writer.writerow(['Epochs', 'Model 1 Loss', 'Model 2 Loss', 
+                         'Model 3 Loss','Model 4 Loss'])
 
     # Iterate over the training epochs
     for j in range(1, 21):
         print("EPOCH NUMBER: " + str(j))
         # Train each model for a fixed number of epochs
-        model1.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
-        model2.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
-        model3.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
-        model4.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
+        model1.fit(X_train_flat, 
+                    y_train_masked.reshape((y_train_masked.shape[0], -1)), 
+                    epochs=5, batch_size=32, validation_split=0.1)
+        model2.fit(X_train_flat, 
+                    y_train_masked.reshape((y_train_masked.shape[0], -1)), 
+                    epochs=5, batch_size=32, validation_split=0.1)
+        model3.fit(X_train_flat, 
+                    y_train_masked.reshape((y_train_masked.shape[0], -1)), 
+                    epochs=5, batch_size=32, validation_split=0.1)
+        model4.fit(X_train_flat, 
+                    y_train_masked.reshape((y_train_masked.shape[0], -1)), 
+                    epochs=5, batch_size=32, validation_split=0.1)
 
 
         model1.save('model1.h5')
