@@ -42,7 +42,7 @@ model.add(Dense(np.prod(y_train.shape[1:]), activation='linear'))  # Adjust the 
 model.compile(optimizer=Adam(learning_rate=0.001), loss='mean_squared_error')
 
 # Train the model with the masked data
-model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=200, batch_size=32, validation_split=0.1)
+model.fit(X_train_flat, y_train_masked.reshape((y_train_masked.shape[0], -1)), epochs=5, batch_size=32, validation_split=0.1)
 
 # Make predictions
 predictions = model.predict(X_test_flat)
@@ -51,7 +51,7 @@ print(predictions.shape)
 
 # Reshape predictions to match the original shape of y_test
 predictions_reshaped = predictions.reshape((predictions.shape[0], y_test.shape[1], y_test.shape[2]))
-
+print(predictions.shape)
 
 #### Testing the model 
 
@@ -80,6 +80,14 @@ with xr.open_dataset(new_12) as ds_new_12:
     data_slice = ds_new_12.isel(time=time_for_image)
     y_new_12 = data_slice['rainfall'].values
 
+
+
+print("Test")
+print(predictions_new_60.shape)
+print(y_test.shape)
+print(predictions_new_60_reshaped.shape)
+print(y_new_12.shape)
+
 # Assuming predictions_new_60_reshaped, X_new_60, and y_new_12 are your data arrays
 plt.figure(figsize=(18, 6))
 
@@ -87,10 +95,13 @@ X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], 
 # Find the maximum value across all three data arrays
 max_value = np.max([np.nanmax(X_new_60_flat), np.nanmax(predictions_new_60_reshaped), np.nanmax(y_new_12)])
 
-X_new_60_flat = X_new_60_flat.reshape((X_new_60_flat.shape[0], X_test.shape[1], X_test.shape[2]))
-
 # Apply the NaN mask to predictions to match the pattern in y_train
 predictions_new_60_reshaped[0][nan_mask_y_train[0]] = np.nan
+
+print("Test Two")
+print(X_new_60.shape)
+print(X_new_60_flat.shape)
+
 
 # Evaluate the model 
 loss = np.nanmean((predictions_new_60_reshaped[0] - y_new_12)**2)
